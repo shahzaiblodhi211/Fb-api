@@ -1,0 +1,26 @@
+// app/api/auth/callback/route.ts
+import { NextResponse } from "next/server";
+
+export async function GET(req) {
+  const url = new URL(req.url);
+  const code = url.searchParams.get("code");
+
+  if (!code) return NextResponse.json({ error: "No code found" }, { status: 400 });
+
+  const tokenRes = await fetch(
+    `https://graph.facebook.com/v19.0/oauth/access_token?client_id=${process.env.NEXT_PUBLIC_FB_APP_ID}&redirect_uri=${process.env.NEXT_PUBLIC_FB_REDIRECT_URI}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`
+  );
+
+  const data = await tokenRes.json();
+
+  if (data.error) return NextResponse.json({ error: data.error }, { status: 400 });
+
+  const res = NextResponse.redirect(new URL("/dashboard", req.url));
+  res.cookies.set("fb_token", data.access_token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 60 // 60 days
+  });
+
+  return res;
+}
