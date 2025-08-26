@@ -14,7 +14,7 @@ export async function GET(req) {
   const data = await tokenRes.json();
 
   if (data.error) return NextResponse.json({ error: data.error }, { status: 400 });
-
+  console.log('error')
   const res = NextResponse.redirect(new URL("/dashboard", req.url));
   res.cookies.set("fb_token", data.access_token, {
     httpOnly: true,
