@@ -10,7 +10,7 @@ export default function Home() {
     const clientId = process.env.NEXT_PUBLIC_FB_APP_ID;
     const redirectUri = `${window.location.origin}/api/auth/callback`;
 
-    window.location.href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=1089724349947686&redirect_uri=${redirectUri}&scope=ads_read,business_management`;
+    window.location.href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=1312918976884842&redirect_uri=${redirectUri}&scope=ads_read,business_management`;
   };
 
   return (

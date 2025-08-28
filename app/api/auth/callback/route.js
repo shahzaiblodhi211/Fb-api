@@ -8,7 +8,7 @@ export async function GET(req) {
   if (!code) return NextResponse.json({ error: "No code found" }, { status: 400 });
 
   const tokenRes = await fetch(
-    `https://graph.facebook.com/v19.0/oauth/access_token?client_id=1089724349947686&redirect_uri=${process.env.NEXT_PUBLIC_FB_REDIRECT_URI}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`
+    `https://graph.facebook.com/v19.0/oauth/access_token?client_id=1312918976884842&redirect_uri=${process.env.NEXT_PUBLIC_FB_REDIRECT_URI}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`
   );
 
   const data = await tokenRes.json();
