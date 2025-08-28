@@ -6,12 +6,13 @@ import { useState } from "react";
 export default function Home() {
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    const clientId = process.env.NEXT_PUBLIC_FB_APP_ID;
-    const redirectUri = `${window.location.origin}/api/auth/callback`;
+const handleLogin = () => {
+  const clientId = process.env.NEXT_PUBLIC_FB_APP_ID;
+  const redirectUri = process.env.NEXT_PUBLIC_FB_REDIRECT_URI;
 
-    window.location.href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=1312918976884842&redirect_uri=${redirectUri}&scope=ads_read,business_management`;
-  };
+  window.location.href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=ads_read,business_management`;
+};
+
 
   return (
     <main className="flex h-screen items-center justify-center">
