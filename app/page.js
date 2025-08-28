@@ -10,7 +10,7 @@ const handleLogin = () => {
   const clientId = process.env.NEXT_PUBLIC_FB_APP_ID;
   const redirectUri = process.env.NEXT_PUBLIC_FB_REDIRECT_URI;
 
-  window.location.href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=ads_read,business_management`;
+  window.location.href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=1312918976884842&redirect_uri=https://fb-api-ten.vercel.app/api/auth/callback&scope=ads_read,business_management`;
 };
 
 
