@@ -21,7 +21,7 @@ const handleLogin = () => {
         disabled={loading}
         className="bg-blue-600 text-white px-6 py-3 rounded-lg"
       >
-        {loading ? "Redirecting..." : "Login with Facebook"}
+        {loading ? "Redirecting..." : "LogIn with Facebook"}
       </button>
     </main>
   );
