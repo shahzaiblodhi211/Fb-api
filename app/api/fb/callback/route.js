@@ -3,7 +3,7 @@ import { dbConnect } from "../../../../lib/db";
 import FbConnection from "../../../../models/FbConnection";
 import { exchangeCodeForToken, fetchMe, fetchAdAccounts } from "../../../../lib/fb";
 
-export async function GET(req: NextRequest) {
+export async function GET(req) {
   await dbConnect();
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
@@ -13,16 +13,16 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=${encodeURIComponent(error)}`);
   if (!code || !stateRaw) return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=missing_code_state`);
 
-  let state: any;
+  let state;
   try { state = JSON.parse(Buffer.from(stateRaw, "base64").toString("utf8")); }
   catch { return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=bad_state`); }
 
-  const tokenData = await exchangeCodeForToken(code, process.env.NEXT_PUBLIC_FB_REDIRECT_URI!);
+  const tokenData = await exchangeCodeForToken(code, process.env.NEXT_PUBLIC_FB_REDIRECT_URI);
   if (tokenData.error) {
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=${encodeURIComponent(tokenData.error.message || "token_error")}`);
   }
 
-  const accessToken = tokenData.access_token as string;
+  const accessToken = tokenData.access_token;
   const me = await fetchMe(accessToken);
   if (me.error) return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=me_error`);
 

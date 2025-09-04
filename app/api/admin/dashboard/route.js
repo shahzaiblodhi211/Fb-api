@@ -9,7 +9,7 @@ import {
   fetchSpendRange,
 } from "../../../../lib/fb";
 
-export async function GET(req: NextRequest) {
+export async function GET(req) {
   await dbConnect();
 
   const user = await getUserFromRequest(req);
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   let totalSpend = 0;
   let activeCampaigns = 0;
   // Initialize report data
-  const reportData: { month: string; spend: number }[] = [];
+  const reportData = [];
 
   // Current week (example: Sept 1–7, 2025 → adjust dynamically if needed)
   const days = [

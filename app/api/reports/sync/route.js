@@ -3,7 +3,7 @@ import { dbConnect } from "../../../../lib/db";
 import { getUserFromRequest, requireRole } from "../../../../lib/auth";
 import Report from "../../../../models/Report";
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   await dbConnect();
   const me = await getUserFromRequest(req);
   if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const ops = rows.map((r: any) => ({
+  const ops = rows.map((r) => ({
     updateOne: {
       filter: { user: clientId, adAccountId: r.adAccountId, dateFrom, dateTo },
       update: { $set: { spend: r.spend, raw: r.raw ?? null } },

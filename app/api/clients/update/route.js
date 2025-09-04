@@ -4,7 +4,7 @@ import { getUserFromRequest } from "../../../../lib/auth";
 import User from "../../../../models/User";
 import "../../../../lib/db";
 
-export async function PUT(req: NextRequest) {
+export async function PUT(req) {
   const user = await getUserFromRequest(req);
   if (!user || user.role !== "superadmin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -13,7 +13,7 @@ export async function PUT(req: NextRequest) {
   const { id, name, email, password } = await req.json();
   if (!id) return NextResponse.json({ error: "Missing client ID" }, { status: 400 });
 
-  const updateData: any = {};
+  const updateData = {};
   if (name) updateData.name = name;
   if (email) updateData.email = email;
   if (password) {

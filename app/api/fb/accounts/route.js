@@ -4,7 +4,7 @@ import { getUserFromRequest, requireRole } from "../../../../lib/auth";
 import FbConnection from "../../../../models/FbConnection";
 import { fetchAdAccounts, fetchSpendRange } from "../../../../lib/fb";
 
-export async function GET(req: NextRequest) {
+export async function GET(req) {
   await dbConnect();
   const me = await getUserFromRequest(req);
   if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
   if (!rangeMode) {
     // lifetime: use amount_spent from account (cents)
-    const hydrated = accounts.map((a: any) => ({
+    const hydrated = accounts.map((a) => ({
       id: a.id,
       name: a.name,
       account_status: a.account_status,
@@ -43,9 +43,9 @@ export async function GET(req: NextRequest) {
   }
 
   // date range: sum spend from insights
-  const hydrated = await Promise.all(accounts.map(async (a: any) => {
+  const hydrated = await Promise.all(accounts.map(async (a) => {
     try {
-      const ins = await fetchSpendRange(a.id, since!, until!, conn.accessToken);
+      const ins = await fetchSpendRange(a.id, since, until, conn.accessToken);
       const rows = Array.isArray(ins.data) ? ins.data : [];
       const spend = rows.reduce((s, r) => s + (parseFloat(r.spend) || 0), 0);
       return {

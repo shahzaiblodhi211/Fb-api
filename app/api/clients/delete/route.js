@@ -4,7 +4,7 @@ import { getUserFromRequest } from "../../../../lib/auth";
 import User from "../../../../models/User";
 import "../../../../lib/db";
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE(req) {
   const user = await getUserFromRequest(req);
   if (!user || user.role !== "superadmin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

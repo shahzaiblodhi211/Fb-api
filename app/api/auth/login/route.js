@@ -4,7 +4,7 @@ import { dbConnect } from "../../../../lib/db";
 import User from "../../../../models/User";
 import { signJwt, setAuthCookie } from "../../../../lib/auth";
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   await dbConnect();
   const { email, password } = await req.json();
 

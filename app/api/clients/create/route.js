@@ -4,7 +4,7 @@ import { dbConnect } from "../../../../lib/db";
 import User from "../../../../models/User";
 import { getUserFromRequest, requireRole } from "../../../../lib/auth";
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   await dbConnect();
   const me = await getUserFromRequest(req);
   if (!requireRole(me, ["superadmin"])) return NextResponse.json({ error: "Forbidden" }, { status: 403 });3
