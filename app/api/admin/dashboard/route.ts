@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import {NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "../../../../lib/db";
 import { getUserFromRequest, requireRole } from "../../../../lib/auth";
 import User from "../../../../models/User";
@@ -9,7 +9,7 @@ import {
   fetchSpendRange,
 } from "../../../../lib/fb";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   await dbConnect();
 
   const user = await getUserFromRequest(req);
@@ -85,7 +85,7 @@ export async function GET(req: Request) {
             const existing = reportData.find((r) => r.month === day.label);
             if (existing) existing.spend += daySpend;
             else reportData.push({ month: day.label, spend: daySpend });
-            console.log(reportData)
+            console.log(reportData) 
           }
         } catch {
           continue; // ignore errors per account
