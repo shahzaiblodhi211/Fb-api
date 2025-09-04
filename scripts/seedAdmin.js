@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
   
 async function main() {
-  await mongoose.connect(process.env.MONGODB_URI!);
+  await mongoose.connect(process.env.MONGODB_URI);
 
   const email = "admin@giantmetrix.com";
   const password = "giantmetrix@admin2154";
