@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "../../../../lib/auth";
 import { fbAuthUrl } from "../../../../lib/fb";
 
-export async function GET(req: NextRequest) {
+export async function GET(req) {
   const me = await getUserFromRequest(req);
   if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
   })).toString("base64");
 
   const url = fbAuthUrl({
-    clientId: process.env.NEXT_PUBLIC_FB_APP_ID!,
-    redirectUri: process.env.NEXT_PUBLIC_FB_REDIRECT_URI!,
+    clientId: process.env.NEXT_PUBLIC_FB_APP_ID,
+    redirectUri: process.env.NEXT_PUBLIC_FB_REDIRECT_URI,
     scope: "ads_read,business_management",
     state
   });

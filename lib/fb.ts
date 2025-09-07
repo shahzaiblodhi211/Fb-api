@@ -30,9 +30,12 @@ export async function exchangeCodeForToken(code: string, redirectUri: string) {
 }
 
 export async function fetchMe(accessToken: string) {
-  const res = await fetch(`${FB_API}/me?fields=id,name&access_token=${accessToken}`, {
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `${FB_API}/me?fields=id,name&access_token=${accessToken}`,
+    {
+      cache: "no-store",
+    }
+  );
   return res.json();
 }
 
@@ -42,6 +45,11 @@ export async function fetchAdAccounts(accessToken: string) {
     { cache: "no-store" }
   );
   return res.json();
+}
+export async function fetchBusinesses(accessToken) {
+  const url = `https://graph.facebook.com/v21.0/me/businesses?fields=id,name,created_time&access_token=${accessToken}`;
+  const res = await fetch(url);
+  return await res.json();
 }
 
 // New: Fetch campaigns for an ad account
