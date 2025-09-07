@@ -45,7 +45,7 @@ export default function AdminDashboard() {
     { month: "Mon", spend: 0 },
     { month: "Tue", spend: 180 },
     { month: "Wed", spend: 90 },
-    { month: "Thu", spend: 240 },
+    { month: "Thu", spend: 0 },
     { month: "Fri", spend: 300 },
     { month: "Sat", spend: 220 },
     { month: "Sun", spend: 150 },
