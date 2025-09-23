@@ -11,7 +11,6 @@ export async function GET(req) {
 
   const { searchParams } = new URL(req.url);
   const clientId = searchParams.get("clientId") || String(me._id);
-  // Allow superadmin to read any client
   if (String(clientId) !== String(me._id) && !requireRole(me, ["superadmin"])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -21,40 +20,73 @@ export async function GET(req) {
   const rangeMode = !!(since && until);
 
   const conn = await FbConnection.findOne({ user: clientId });
-  if (!conn) return NextResponse.json({ data: [], error: "No Facebook connected" }, { status: 200 });
+  if (!conn) {
+    return NextResponse.json({ data: [], error: "No Facebook connected" }, { status: 200 });
+  }
 
-  // refresh accounts if not cached
-  let accountsRes = await fetchAdAccounts(conn.accessToken);
+  const accountsRes = await fetchAdAccounts(conn.accessToken);
   if (accountsRes.error) {
     return NextResponse.json({ error: accountsRes.error.message || "fb_error" }, { status: 400 });
   }
   const accounts = accountsRes.data || [];
 
   if (!rangeMode) {
-    // lifetime: use amount_spent from account (cents)
-    const hydrated = accounts.map((a) => ({
-      id: a.id,
-      name: a.name,
-      account_status: a.account_status,
-      balance: a.balance ?? 0,
-      spent: a.amount_spent ? Number(a.amount_spent) / 100 : 0
-    }));
+    // lifetime mode: include spend_cap and remaining_limit
+    const hydrated = accounts.map((a) => {
+      const spent = a.amount_spent ? Number(a.amount_spent) / 100 : 0;
+      const spendCap = a.spend_cap ? Number(a.spend_cap) / 100 : null;
+      const remainingLimit =
+        a.spend_cap ? (Number(a.spend_cap) - Number(a.amount_spent || 0)) / 100 : null;
+
+      return {
+        id: a.id,
+        name: a.name,
+        account_status: a.account_status,
+        balance: a.balance ?? 0,
+        spent,
+        spend_cap: spendCap,          // total account limit
+        remaining_limit: remainingLimit // how much can still be spent
+      };
+    });
+
     return NextResponse.json({ data: hydrated });
   }
 
-  // date range: sum spend from insights
-  const hydrated = await Promise.all(accounts.map(async (a) => {
-    try {
-      const ins = await fetchSpendRange(a.id, since, until, conn.accessToken);
-      const rows = Array.isArray(ins.data) ? ins.data : [];
-      const spend = rows.reduce((s, r) => s + (parseFloat(r.spend) || 0), 0);
-      return {
-        id: a.id, name: a.name, account_status: a.account_status, balance: a.balance ?? 0, spent: spend
-      };
-    } catch {
-      return { id: a.id, name: a.name, account_status: a.account_status, balance: a.balance ?? 0, spent: 0 };
-    }
-  }));
+  // date-range mode: we still include spend_cap/remaining_limit if you want
+  const hydrated = await Promise.all(
+    accounts.map(async (a) => {
+      try {
+        const ins = await fetchSpendRange(a.id, since, until, conn.accessToken);
+        const rows = Array.isArray(ins.data) ? ins.data : [];
+        const spend = rows.reduce((s, r) => s + (parseFloat(r.spend) || 0), 0);
+        const spendCap = a.spend_cap ? Number(a.spend_cap) / 100 : null;
+        const remainingLimit =
+          a.spend_cap ? (Number(a.spend_cap) - Number(a.amount_spent || 0)) / 100 : null;
+
+        return {
+          id: a.id,
+          name: a.name,
+          account_status: a.account_status,
+          balance: a.balance ?? 0,
+          spent: spend,
+          spend_cap: spendCap,
+          remaining_limit: remainingLimit
+        };
+      } catch {
+        return {
+          id: a.id,
+          name: a.name,
+          account_status: a.account_status,
+          balance: a.balance ?? 0,
+          spent: 0,
+          spend_cap: a.spend_cap ? Number(a.spend_cap) / 100 : null,
+          remaining_limit: a.spend_cap
+            ? (Number(a.spend_cap) - Number(a.amount_spent || 0)) / 100
+            : null
+        };
+      }
+    })
+  );
 
   return NextResponse.json({ data: hydrated });
 }

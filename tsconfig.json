@@ -32,7 +32,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-, "app/api/admin/dashboard/route.js", "app/api/auth/login/route.js", "app/api/clients/create/route.js", "app/api/clients/delete/route.js", "app/api/clients/list/route.js", "app/api/clients/update/route.js", "app/api/fb/accounts/route.js", "app/api/fb/callback/route.js", "app/api/reports/sync/route.js", "scripts/seedAdmin.js", "lib/auth.js", "app/api/fb/start/route.js"  ],
+, "app/api/admin/dashboard/route.js", "app/api/auth/login/route.js", "app/api/clients/create/route.js", "app/api/clients/delete/route.js", "app/api/clients/list/route.js", "app/api/clients/update/route.js", "app/api/fb/accounts/route.ts", "app/api/fb/callback/route.js", "app/api/reports/sync/route.ts", "scripts/seedAdmin.js", "lib/auth.js", "app/api/fb/start/route.js"  ],
   "exclude": [
     "node_modules"
   ]

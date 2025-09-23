@@ -10,6 +10,7 @@ type Row = {
   account_status: any;
   balance: number;
   spent: number;
+  remaining_limit: number | null;
 };
 
 export default function ClientDashboard() {
@@ -255,7 +256,7 @@ export default function ClientDashboard() {
                 <th className="p-3 text-left">ID</th>
                 <th className="p-3 text-left">Status</th>
                 <th className="p-3 text-left">Amount Spent</th>
-                <th className="p-3 text-left">Balance</th>
+                <th className="p-3 text-left">Remaining Amount</th>
               </tr>
             </thead>
             <tbody>
@@ -278,32 +279,30 @@ export default function ClientDashboard() {
                   <td className="p-3 font-mono text-gray-600">{r.id}</td>
                   <td className="p-3">
                     <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        r.account_status === 1
+                      className={`px-3 py-1 rounded-full text-sm font-semibold ${r.account_status === 1
+                        ? "bg-green-100 text-green-700"
+                        : r.account_status === 101
                           ? "bg-green-100 text-green-700"
-                          : r.account_status === 101
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "text-gray-500"
-                      }`}
+                          : "bg-red-100 text-red-700"
+                        }`}
                     >
                       {r.account_status === 1
-                        ? "active"
+                        ? "Active"
                         : r.account_status === 101
-                        ? "pending"
-                        : "Unknown"}
+                          ? "Active"
+                          : "Disabled"}
                     </span>
                   </td>
                   <td className="p-3">
                     {r.spent == null ? "—" : `$${r.spent.toFixed(2)}`}
                   </td>
                   <td
-                    className={`p-3 font-semibold ${
-                      Number(r.balance) < 300
-                        ? "text-red-600"
-                        : "text-green-600"
-                    }`}
+                    className={`p-3 font-semibold ${Number(r.remaining_limit) < 300
+                      ? "text-red-600"
+                      : "text-green-600"
+                      }`}
                   >
-                    ${Number(r.balance ?? 0).toFixed(2)}
+                    ${Number(r.remaining_limit ?? 0).toFixed(2)}
                   </td>
                 </tr>
               ))}

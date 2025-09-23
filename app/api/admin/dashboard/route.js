@@ -1,4 +1,4 @@
-import {NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { dbConnect } from "../../../../lib/db";
 import { getUserFromRequest, requireRole } from "../../../../lib/auth";
 import User from "../../../../models/User";
@@ -36,65 +36,76 @@ export async function GET(req) {
   let adAccounts = 0;
   let totalSpend = 0;
   let activeCampaigns = 0;
+
   // Initialize report data
   const reportData = [];
 
-  // Current week (example: Sept 1–7, 2025 → adjust dynamically if needed)
-  const days = [
-    { label: "Mon", since: "2025-09-01", until: "2025-09-01" },
-    { label: "Tue", since: "2025-09-02", until: "2025-09-02" },
-    { label: "Wed", since: "2025-09-03", until: "2025-09-03" },
-    { label: "Thu", since: "2025-09-04", until: "2025-09-04" },
-    { label: "Fri", since: "2025-09-05", until: "2025-09-05" },
-    { label: "Sat", since: "2025-09-06", until: "2025-09-06" },
-    { label: "Sun", since: "2025-09-07", until: "2025-09-07" },
-  ];
+  // Current week (example: Sept 1–7, 2025 → dynamically adjust if needed)
+  const weekRange = { since: "2025-09-01", until: "2025-09-07" };
 
-  for (const conn of fbConnections) {
-    try {
-      const accountsRes = await fetchAdAccounts(conn.accessToken);
-      const accounts = accountsRes.data || [];
-      adAccounts += accounts.length;
+  // Run per-connection tasks in parallel
+  await Promise.all(
+    fbConnections.map(async (conn) => {
+      try {
+        const accountsRes = await fetchAdAccounts(conn.accessToken);
+        const accounts = accountsRes.data || [];
+        adAccounts += accounts.length;
 
-      // Fetch campaigns for each account to calculate active campaigns
-      for (const acc of accounts) {
-        try {
-          const campaignsRes = await fetchCampaigns(acc.id, conn.accessToken);
-          const campaigns = campaignsRes.data || [];
-          activeCampaigns += campaigns.filter(
-            (c) => c.status === "ACTIVE"
-          ).length;
+        await Promise.all(
+          accounts.map(async (acc) => {
+            try {
+              // campaigns
+              const campaignsRes = await fetchCampaigns(
+                acc.id,
+                conn.accessToken
+              );
+              const campaigns = campaignsRes.data || [];
+              activeCampaigns += campaigns.filter(
+                (c) => c.status === "ACTIVE"
+              ).length;
 
-          // Sum lifetime spend
-          totalSpend += acc.amount_spent ? Number(acc.amount_spent) / 100 : 0;
+              // lifetime spend
+              totalSpend += acc.amount_spent
+                ? Number(acc.amount_spent) / 100
+                : 0;
 
-          // Weekly report (Mon–Sun)
-          for (const day of days) {
-            const insights = await fetchSpendRange(
-              acc.id,
-              day.since,
-              day.until,
-              conn.accessToken
-            );
-            const rows = Array.isArray(insights.data) ? insights.data : [];
-            const daySpend = rows.reduce(
-              (sum, r) => sum + (parseFloat(r.spend) || 0),
-              0
-            );
+              // weekly spend in one call
+              const insights = await fetchSpendRange(
+                acc.id,
+                weekRange.since,
+                weekRange.until,
+                conn.accessToken,
+                "1" // ⚡ daily breakdown
+              );
 
-            const existing = reportData.find((r) => r.month === day.label);
-            if (existing) existing.spend += daySpend;
-            else reportData.push({ month: day.label, spend: daySpend });
-            console.log(reportData) 
-          }
-        } catch {
-          continue; // ignore errors per account
-        }
+              const rows = Array.isArray(insights.data) ? insights.data : [];
+              rows.forEach((r) => {
+                const date = r.date_start; // comes per day
+                const dayLabel = new Date(date)
+                  .toLocaleDateString("en-US", { weekday: "short" })
+                  .slice(0, 3); // "Mon", "Tue", etc.
+
+                const spend = parseFloat(r.spend) || 0;
+                const existing = reportData.find((x) => x.month === dayLabel);
+                if (existing) existing.spend += spend;
+                else reportData.push({ month: dayLabel, spend });
+              });
+            } catch (err) {
+              console.warn("[Account Error]", acc.id, err.message);
+            }
+          })
+        );
+      } catch (err) {
+        console.warn("[Connection Error]", conn._id, err.message);
       }
-    } catch {
-      continue; // ignore errors per connection
-    }
-  }
+    })
+  );
+
+  // sort reportData by weekday order
+  const order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  reportData.sort(
+    (a, b) => order.indexOf(a.month) - order.indexOf(b.month)
+  );
 
   const stats = {
     clients: clients.length,
