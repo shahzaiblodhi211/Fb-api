@@ -289,7 +289,7 @@ export default function ClientDashboard() {
                     ${Number(r.remaining_limit ?? 0).toFixed(2)}
                   </td>
                   <td
-                    className={`p-3 font-semibold ${Number(r.remaining_limit) < 300
+                    className={`p-3 font-semibold ${Number(r.spent + r.remaining_limit) < 300
                       ? "text-red-600"
                       : "text-green-600"
                       }`}
