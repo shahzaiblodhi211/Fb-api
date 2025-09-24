@@ -240,20 +240,18 @@ export default function ClientDashboard() {
                 <th className="p-3 text-left">Status</th>
                 <th className="p-3 text-left">Amount Spent</th>
                 <th className="p-3 text-left">Remaining Amount</th>
-                <th className="p-3 text-left">Total</th>
               </tr>
             </thead>
+
             <tbody>
               {rows.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="p-4 text-center text-gray-500"
-                  >
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
                     No data
                   </td>
                 </tr>
               )}
+
               {rows.map((r) => (
                 <tr
                   key={r.id}
@@ -263,18 +261,14 @@ export default function ClientDashboard() {
                   <td className="p-3 font-mono text-gray-600">{r.id}</td>
                   <td className="p-3">
                     <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${r.account_status === 1
+                      className={`px-3 py-1 rounded-full text-sm font-semibold ${r.account_status === 1 || r.account_status === 101
                         ? "bg-green-100 text-green-700"
-                        : r.account_status === 101
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
+                        : "bg-red-100 text-red-700"
                         }`}
                     >
-                      {r.account_status === 1
+                      {r.account_status === 1 || r.account_status === 101
                         ? "Active"
-                        : r.account_status === 101
-                          ? "Active"
-                          : "Disabled"}
+                        : "Disabled"}
                     </span>
                   </td>
                   <td className="p-3">
@@ -288,18 +282,40 @@ export default function ClientDashboard() {
                   >
                     ${Number(r.remaining_limit ?? 0).toFixed(2)}
                   </td>
-                  <td
-                    className={`p-3 font-semibold ${Number(r.spent + r.remaining_limit) < 300
-                      ? "text-red-600"
-                      : "text-green-600"
-                      }`}
-                  >
-                    ${Number(r.spent + r.remaining_limit).toFixed(2)}
-                  </td>
                 </tr>
               ))}
+
+              {/* ✅ Summary Row */}
+              {rows.length > 0 && (
+                <tr className="bg-gray-100 font-semibold">
+                  {/* ✅ Totals label now in the first column */}
+                  <td className="p-3 text-left">Totals:</td>
+
+                  {/* Empty cells to keep the layout aligned */}
+                  <td>-</td>
+                  <td>-</td>
+
+                  {/* Spent total */}
+                  <td className="p-3 text-blue-700">
+                    $
+                    {rows
+                      .reduce((sum, r) => sum + (r.spent ?? 0), 0)
+                      .toFixed(2)}
+                  </td>
+
+                  {/* Remaining total */}
+                  <td className="p-3 text-blue-700">
+                    $
+                    {rows
+                      .reduce((sum, r) => sum + Number(r.remaining_limit ?? 0), 0)
+                      .toFixed(2)}
+                  </td>
+                </tr>
+              )}
+
             </tbody>
           </table>
+
         )}
       </div>
     </main>
