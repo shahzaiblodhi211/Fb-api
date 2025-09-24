@@ -3,6 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Facebook, LogOut, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import DateRangePopover from "@/components/DateRangePopover";
+
+// Define the structure of a row in the ad accounts table
 
 type Row = {
   id: string;
@@ -198,43 +201,23 @@ export default function ClientDashboard() {
 
       {/* Filters */}
       <div className="bg-white rounded-2xl shadow p-5 mb-6">
-        <div className="flex flex-wrap items-end gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Since
-            </label>
-            <input
-              type="date"
-              className="border px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={since}
-              onChange={(e) => setSince(e.target.value)}
-              max={until || undefined}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Until
-            </label>
-            <input
-              type="date"
-              className="border px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
-              value={until}
-              onChange={(e) => setUntil(e.target.value)}
-              min={since || undefined}
-            />
-          </div>
-          <button
-            onClick={() => {
+        <div className="flex flex-wrap items-center gap-4">
+          <DateRangePopover
+            onChange={(since, until, count) => {
+              setSince(since);
+              setUntil(until);
+              load(); // always fires after each Apply
+            }}
+            onReset={() => {
               setSince("");
               setUntil("");
+              load();
             }}
-            className="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
-          >
-            Reset to Lifetime
-          </button>
+          />
+
           <button
             onClick={load}
-            className="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
+            className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-gray-100"
           >
             Refresh
           </button>
@@ -257,6 +240,7 @@ export default function ClientDashboard() {
                 <th className="p-3 text-left">Status</th>
                 <th className="p-3 text-left">Amount Spent</th>
                 <th className="p-3 text-left">Remaining Amount</th>
+                <th className="p-3 text-left">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -303,6 +287,14 @@ export default function ClientDashboard() {
                       }`}
                   >
                     ${Number(r.remaining_limit ?? 0).toFixed(2)}
+                  </td>
+                  <td
+                    className={`p-3 font-semibold ${Number(r.remaining_limit) < 300
+                      ? "text-red-600"
+                      : "text-green-600"
+                      }`}
+                  >
+                    ${Number(r.spent + r.remaining_limit).toFixed(2)}
                   </td>
                 </tr>
               ))}

@@ -118,3 +118,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* calendar-squares.css */
+.rdrDayNumber span,
+.rdrDayToday .rdrDayNumber span {
+  border-radius: 6px !important;   /* square instead of circle */
+  padding: 2px 0 !important;
+}
+.rdrDay:not(.rdrDayPassive) .rdrDayNumber:hover span {
+  background: rgba(37,99,235,0.15); /* light blue hover */
+}
+.rdrDaySelected .rdrDayNumber span,
+.rdrStartEdge .rdrDayNumber span,
+.rdrEndEdge .rdrDayNumber span {
+  background: #2563eb !important;
+  color: #fff !important;
+}
