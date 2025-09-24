@@ -110,6 +110,10 @@ export default function ClientDashboard() {
   useEffect(() => {
     if (me) fetchBusinesses();
   }, [me]);
+  // 🔑 run load() every time since/until changes
+  useEffect(() => {
+    load();
+  }, [since, until]);
 
   const connect = async (id: string) => {
     const client = clients.find((c) => c.id === id);
@@ -206,12 +210,10 @@ export default function ClientDashboard() {
             onChange={(since, until, count) => {
               setSince(since);
               setUntil(until);
-              load(); // always fires after each Apply
             }}
             onReset={() => {
               setSince("");
               setUntil("");
-              load();
             }}
           />
 
