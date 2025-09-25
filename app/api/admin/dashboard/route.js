@@ -17,18 +17,24 @@ export async function GET(req) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Fetch all clients
+  // ----- Date ranges -----
+  const today = new Date();
+  const todayISO = today.toISOString().slice(0, 10);
+  const allTimeRange = { since: "2024-01-01", until: todayISO };
+  const weekRange = { since: "2025-09-01", until: "2025-09-07" }; // adjust if needed
+
+  // ----- Fetch clients -----
   const clients = await User.find({ role: "client" })
     .select("_id name email")
     .lean();
+
   const recentClients = clients.map((c) => ({
     id: c._id.toString(),
     name: c.name,
     email: c.email,
-    status: "active", // optionally update from FB
+    status: "active",
   }));
 
-  // Fetch FB connections for all clients
   const fbConnections = await FbConnection.find({
     user: { $in: clients.map((c) => c._id) },
   }).lean();
@@ -36,14 +42,8 @@ export async function GET(req) {
   let adAccounts = 0;
   let totalSpend = 0;
   let activeCampaigns = 0;
-
-  // Initialize report data
   const reportData = [];
 
-  // Current week (example: Sept 1–7, 2025 → dynamically adjust if needed)
-  const weekRange = { since: "2025-09-01", until: "2025-09-07" };
-
-  // Run per-connection tasks in parallel
   await Promise.all(
     fbConnections.map(async (conn) => {
       try {
@@ -54,37 +54,36 @@ export async function GET(req) {
         await Promise.all(
           accounts.map(async (acc) => {
             try {
-              // campaigns
-              const campaignsRes = await fetchCampaigns(
+              // Active campaigns
+              const campaignsRes = await fetchCampaigns(acc.id, conn.accessToken);
+              const campaigns = campaignsRes.data || [];
+              activeCampaigns += campaigns.filter((c) => c.status === "ACTIVE").length;
+
+              // ✅ Sum spend from 2024-01-01 → today
+              const lifetime = await fetchSpendRange(
                 acc.id,
+                allTimeRange.since,
+                allTimeRange.until,
                 conn.accessToken
               );
-              const campaigns = campaignsRes.data || [];
-              activeCampaigns += campaigns.filter(
-                (c) => c.status === "ACTIVE"
-              ).length;
+              const lifetimeRows = Array.isArray(lifetime.data) ? lifetime.data : [];
+              lifetimeRows.forEach((r) => {
+                totalSpend += parseFloat(r.spend) || 0;
+              });
 
-              // lifetime spend
-              totalSpend += acc.amount_spent
-                ? Number(acc.amount_spent) / 100
-                : 0;
-
-              // weekly spend in one call
-              const insights = await fetchSpendRange(
+              // Weekly spend for chart
+              const week = await fetchSpendRange(
                 acc.id,
                 weekRange.since,
                 weekRange.until,
                 conn.accessToken,
-                "1" // ⚡ daily breakdown
+                "1"
               );
-
-              const rows = Array.isArray(insights.data) ? insights.data : [];
-              rows.forEach((r) => {
-                const date = r.date_start; // comes per day
-                const dayLabel = new Date(date)
+              const weekRows = Array.isArray(week.data) ? week.data : [];
+              weekRows.forEach((r) => {
+                const dayLabel = new Date(r.date_start)
                   .toLocaleDateString("en-US", { weekday: "short" })
-                  .slice(0, 3); // "Mon", "Tue", etc.
-
+                  .slice(0, 3);
                 const spend = parseFloat(r.spend) || 0;
                 const existing = reportData.find((x) => x.month === dayLabel);
                 if (existing) existing.spend += spend;
@@ -101,18 +100,21 @@ export async function GET(req) {
     })
   );
 
-  // sort reportData by weekday order
+  // Sort weekly report
   const order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  reportData.sort(
-    (a, b) => order.indexOf(a.month) - order.indexOf(b.month)
-  );
+  reportData.sort((a, b) => order.indexOf(a.month) - order.indexOf(b.month));
 
-  const stats = {
-    clients: clients.length,
-    adAccounts,
-    activeCampaigns,
-    spend: totalSpend,
-  };
+  // ✅ Round total spend to two decimals
+  const roundedSpend = Number(totalSpend.toFixed(2));
 
-  return NextResponse.json({ stats, recentClients, reportData });
+  return NextResponse.json({
+    stats: {
+      clients: clients.length,
+      adAccounts,
+      activeCampaigns,
+      spend: roundedSpend, // e.g. 36122.91
+    },
+    recentClients,
+    reportData,
+  });
 }
