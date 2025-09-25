@@ -12,6 +12,8 @@ import {
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 
+type RangeItem = { startDate?: Date; endDate?: Date; key: string };
+
 const PRESETS = [
   { label: "Today",       range: { startDate: new Date(), endDate: new Date() } },
   { label: "Last 7 Days", range: { startDate: addDays(new Date(), -6),  endDate: new Date() } },
@@ -26,7 +28,8 @@ const PRESETS = [
       endDate: endOfMonth(addDays(new Date(), -30)),
     },
   },
-  { label: "All Time",    range: { startDate: addDays(new Date(), -3650), endDate: new Date() } },
+  // 🟢 “All Time” has no range → means no filter
+  { label: "All Time",    range: {} },
 ];
 
 export default function DateRangeFilter({
@@ -36,13 +39,9 @@ export default function DateRangeFilter({
 }: {
   onApply: (since: string, until: string, label: string) => void;
   onReset: () => void;
-  initialRange?: {
-    startDate: Date;
-    endDate: Date;
-    label: string;
-  };
+  initialRange?: { startDate: Date; endDate: Date; label: string };
 }) {
-  const [range, setRange] = useState([
+  const [range, setRange] = useState<RangeItem[]>([
     {
       startDate: initialRange?.startDate ?? addDays(new Date(), -30),
       endDate: initialRange?.endDate ?? new Date(),
@@ -53,7 +52,6 @@ export default function DateRangeFilter({
     initialRange?.label ?? "Last 30 Days"
   );
 
-  // 🟢 If parent updates initialRange while popover is reopened
   useEffect(() => {
     if (initialRange) {
       setRange([{ ...initialRange, key: "selection" }]);
@@ -61,13 +59,15 @@ export default function DateRangeFilter({
     }
   }, [initialRange]);
 
-  const matchPreset = (start: Date, end: Date): string | null => {
+  const matchPreset = (start: Date, end: Date) => {
     for (const p of PRESETS) {
-      if (
-        isSameDay(p.range.startDate, start) &&
-        isSameDay(p.range.endDate, end)
-      ) {
-        return p.label;
+      if (p.range.startDate && p.range.endDate) {
+        if (
+          isSameDay(p.range.startDate, start) &&
+          isSameDay(p.range.endDate, end)
+        ) {
+          return p.label;
+        }
       }
     }
     return null;
@@ -75,6 +75,11 @@ export default function DateRangeFilter({
 
   const apply = () => {
     const { startDate, endDate } = range[0];
+    if (!startDate || !endDate) {
+      // If somehow no dates, just reset filter
+      onReset();
+      return;
+    }
     onApply(
       startDate.toISOString().slice(0, 10),
       endDate.toISOString().slice(0, 10),
@@ -82,21 +87,32 @@ export default function DateRangeFilter({
     );
   };
 
-  const selectPreset = (preset: { startDate: Date; endDate: Date }, label: string) => {
-    setRange([{ ...preset, key: "selection" }]);
+  const selectPreset = (
+    preset: { startDate?: Date; endDate?: Date },
+    label: string
+  ) => {
     setActivePreset(label);
+
+    if (label === "All Time") {
+      // 🚀 no date filter, notify parent to clear
+      onReset();
+      // Clear internal range so calendar visually empties
+      setRange([{ startDate: undefined, endDate: undefined, key: "selection" }]);
+    } else {
+      setRange([{ ...preset, key: "selection" }]);
+    }
   };
 
   return (
     <div className="mx-auto w-[1020px] rounded-2xl bg-white">
-      <div className="flex items-center justify-between border-b  bg-white border-gray-200 px-6 py-4">
+      <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
         <h2 className="text-lg font-semibold text-gray-800">Select Date Range</h2>
         <span className="text-sm text-gray-500">{activePreset}</span>
       </div>
 
       <div className="flex w-full">
         {/* Presets */}
-        <aside className="min-w-[220px] max-w-[220px] border-r border-gray-200 bg-white">
+        <aside className="min-w-[220px] max-w-[220px] border-r border-gray-200">
           <ul className="py-4 text-sm">
             {PRESETS.map((p) => (
               <li
@@ -115,14 +131,16 @@ export default function DateRangeFilter({
         </aside>
 
         {/* Calendar */}
-        <main className="flex-1 bg-white p-6">
+        <main className="flex-1 p-6">
           <DateRange
             ranges={range}
             onChange={(item) => {
               const sel = item.selection;
-              setRange([sel]);
-              const found = matchPreset(sel.startDate, sel.endDate);
-              setActivePreset(found ?? "Custom");
+              if (sel.startDate && sel.endDate) {
+                setRange([sel]);
+                const found = matchPreset(sel.startDate, sel.endDate);
+                setActivePreset(found ?? "Custom");
+              }
             }}
             months={2}
             direction="horizontal"
@@ -135,6 +153,7 @@ export default function DateRangeFilter({
             <button
               onClick={() => {
                 setActivePreset("All Time");
+                setRange([{ startDate: undefined, endDate: undefined, key: "selection" }]);
                 onReset();
               }}
               className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
