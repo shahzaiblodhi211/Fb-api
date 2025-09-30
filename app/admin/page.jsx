@@ -40,6 +40,26 @@ export default function AdminDashboard() {
   });
   const [recentClients, setRecentClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAccountsModalOpen, setIsAccountsModalOpen] = useState(false);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [allAccounts, setAllAccounts] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [selectedAccounts, setSelectedAccounts] = useState({});
+
+  const loadAccountsForClient = async (clientId) => {
+    setAccountsLoading(true);
+    try {
+      const res = await fetch(`/api/fb/accounts?clientId=${clientId}&all=true`);
+      const data = await res.json();
+      setAllAccounts(data.data || []);
+      setSelectedClient(data.clientname || clientId);
+      setIsAccountsModalOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch accounts", err);
+    } finally {
+      setAccountsLoading(false);
+    }
+  };
 
   const [reportData, setReportData] = useState([
     { month: "Mon", spend: 0 },
@@ -192,8 +212,8 @@ export default function AdminDashboard() {
                 key={idx}
                 variant={activeTab === item.label ? "default" : "ghost"}
                 className={`w-full justify-start gap-3 font-semibold cursor-pointer transition ${activeTab === item.label
-                  ? "bg-white/20 hover:bg-white/30"
-                  : "hover:bg-white/10"
+                  ? "bg-white/20 hover:bg-white/30 text-white hover:text-white"
+                  : "hover:bg-white/10 text-white hover:text-white"
                   }`}
                 onClick={() => setActiveTab(item.label)}
               >
@@ -421,12 +441,23 @@ export default function AdminDashboard() {
                           >
                             <Edit2 className="w-4 h-4" />
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => loadAccountsForClient(c.id)}
+                          >
+                            {selectedAccounts[c.id]?.length > 0
+                              ? `${selectedAccounts[c.id].length} accounts selected`
+                              : "Select Accounts"}
+                          </Button>
+
+
                           {/* Connect FB */}
                           {c.fbConnected ? (
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-blue-300 text-white cursor-pointer bg-gradient-to-r from-blue-400 to-blue-600 transition"
+                              className="border-blue-300 text-white hover:text-white cursor-pointer bg-gradient-to-r from-blue-400 to-blue-600 transition"
                               onClick={() => connectForClient(c.id)}
                             >
                               <Facebook className="w-4 h-4" />
@@ -458,6 +489,78 @@ export default function AdminDashboard() {
               </table>
             </div>
 
+            {isAccountsModalOpen && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+                  <h2 className="text-lg font-semibold mb-4">
+                    Select Ad Accounts for Client {selectedClient}
+                  </h2>
+
+                  {accountsLoading ? (
+                    <p className="text-gray-500">Loading accounts…</p>
+                  ) : allAccounts.length === 0 ? (
+                    <p className="text-gray-500">No accounts found.</p>
+                  ) : (
+                    <div className="max-h-60 overflow-y-auto space-y-2 mb-4">
+                      {allAccounts.map((acc) => {
+                        const selected = selectedAccounts[selectedClient] || [];
+                        return (
+                          <label key={acc.id} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selected.includes(acc.id)} // ✅ only from local state
+                              onChange={() => {
+                                setSelectedAccounts((prev) => {
+                                  const current = prev[selectedClient] || [];
+                                  return {
+                                    ...prev,
+                                    [selectedClient]: current.includes(acc.id)
+                                      ? current.filter((x) => x !== acc.id) // remove
+                                      : [...current, acc.id], // add
+                                  };
+                                });
+                              }}
+                            />
+                            <span>{acc.name} ({acc.id})</span>
+                          </label>
+                        );
+                      })}
+
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsAccountsModalOpen(false);
+                        setSelectedClient(null);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        const chosen = selectedAccounts[selectedClient] || [];
+                        await fetch("/api/clients/accounts", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            clientId: selectedClient,
+                            adAccountIds: chosen,
+                          }),
+                        });
+                        setIsAccountsModalOpen(false);
+                        setSelectedClient(null);
+                      }}
+                    >
+                      Save Selection
+                    </Button>
+
+                  </div>
+                </div>
+              </div>
+            )}
 
 
             {/* Add / Edit Client Modal */}
