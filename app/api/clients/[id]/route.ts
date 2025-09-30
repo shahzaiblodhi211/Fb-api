@@ -2,13 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/db";
 import Client from "@/models/Client";
 
-export async function GET(
-  req: NextRequest,
-  context: { params: { id: string } }
-) {
+// ✅ Loosen typing for context to avoid Promise<{id}>
+export async function GET(req: NextRequest, context: any) {
   await dbConnect();
 
-  const { id } = context.params; // ✅ correct way
+  const { id } = context.params; // works at runtime
   const client = await Client.findById(id).lean();
 
   if (!client) {
