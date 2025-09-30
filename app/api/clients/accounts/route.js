@@ -3,7 +3,7 @@ import { dbConnect } from "@/lib/db";
 import { getUserFromRequest, requireRole } from "@/lib/auth";
 import ClientAdAccounts from "../../../../models/ClientAdAccounts"; // new model
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   await dbConnect();
   const me = await getUserFromRequest(req);
   if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
