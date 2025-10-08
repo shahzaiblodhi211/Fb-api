@@ -13,7 +13,9 @@ export async function GET(req) {
   await dbConnect();
 
   const user = await getUserFromRequest(req);
-  if (!user || !requireRole(user, ["superadmin"])) {
+
+  // ✅ Allow both superadmin and admin roles
+  if (!user || !requireRole(user, ["superadmin", "admin"])) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Facebook, LogOut, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DateRangePopover from "@/components/DateRangePopover";
-
+import { formatUSD } from "@/lib/formatCurrency";
 // Define the structure of a row in the ad accounts table
 
 type Row = {
@@ -274,16 +274,15 @@ export default function ClientDashboard() {
                     </span>
                   </td>
                   <td className="p-3">
-                    {r.spent == null ? "—" : `$${r.spent.toFixed(2)}`}
+                    {formatUSD(r.spent)}
                   </td>
                   <td
-                    className={`p-3 font-semibold ${Number(r.remaining_limit) < 300
-                      ? "text-red-600"
-                      : "text-green-600"
+                    className={`p-3 font-semibold ${Number(r.remaining_limit) < 300 ? "text-red-600" : "text-green-600"
                       }`}
                   >
-                    ${Number(r.remaining_limit ?? 0).toFixed(2)}
+                    {formatUSD(r.remaining_limit)}
                   </td>
+
                 </tr>
               ))}
 
@@ -299,21 +298,16 @@ export default function ClientDashboard() {
 
                   {/* Spent total */}
                   <td className="p-3 text-blue-700">
-                    $
-                    {rows
-                      .reduce((sum, r) => sum + (r.spent ?? 0), 0)
-                      .toFixed(2)}
+                    {formatUSD(rows.reduce((sum, r) => sum + (r.spent ?? 0), 0))}
                   </td>
 
                   {/* Remaining total */}
                   <td className="p-3 text-blue-700">
-                    $
-                    {rows
-                      .reduce((sum, r) => sum + Number(r.remaining_limit ?? 0), 0)
-                      .toFixed(2)}
+                    {formatUSD(rows.reduce((sum, r) => sum + Number(r.remaining_limit ?? 0), 0))}
                   </td>
                 </tr>
               )}
+
 
             </tbody>
           </table>

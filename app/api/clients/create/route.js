@@ -16,7 +16,7 @@ export async function POST(req) {
     const me = await getUserFromRequest(req);
     console.log("[Auth] Current user:", me?._id, "role:", me?.role);
 
-    if (!requireRole(me, ["superadmin"])) {
+    if (!requireRole(me, ["superadmin","admin"])) {
       console.warn("[Auth] Forbidden for user:", me?._id);
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

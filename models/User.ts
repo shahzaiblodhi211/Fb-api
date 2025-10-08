@@ -1,19 +1,29 @@
-import { Schema, models, model, Document } from "mongoose";
+import mongoose, { Schema, models, model, Document } from "mongoose";
 
 export interface IUser extends Document {
   email: string;
   name?: string;
-  role: "superadmin" | "client";
-  passwordHash: string;             // bcrypt hash
+  role: "superadmin" | "admin" | "client";
+  passwordHash: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
-const UserSchema = new Schema<IUser>({
-  email: { type: String, unique: true, required: true, index: true },
-  name: String,
-  role: { type: String, enum: ["superadmin", "client"], required: true },
-  passwordHash: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
-});
+const UserSchema = new Schema<IUser>(
+  {
+    email: { type: String, required: true, unique: true, index: true },
+    name: { type: String },
+    role: {
+      type: String,
+      enum: ["superadmin", "admin", "client"],
+      required: true,
+      default: "client", // ✅ sensible default
+    },
+    passwordHash: { type: String, required: true },
+  },
+  { timestamps: true } // ✅ adds createdAt + updatedAt automatically
+);
 
-export default models.User || model<IUser>("User", UserSchema);
+const User = models.User || model<IUser>("User", UserSchema);
+
+export default User;

@@ -14,7 +14,7 @@ export async function POST(req) {
   }
 
   // only superadmin can set selections for clients
-  if (String(clientId) !== String(me._id) && !requireRole(me, ["superadmin"])) {
+  if (String(clientId) !== String(me._id) && !requireRole(me, ["superadmin","admin"])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

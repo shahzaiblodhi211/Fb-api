@@ -89,3 +89,4 @@ export async function GET(req) {
     `${process.env.NEXT_PUBLIC_APP_URL}/client/${state.targetClientId}/dashboard?connected=1`
   );
 }
+

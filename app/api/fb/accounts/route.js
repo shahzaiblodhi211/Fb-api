@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "../../../../lib/db";
 import { getUserFromRequest, requireRole } from "../../../../lib/auth";
@@ -15,7 +16,7 @@ export async function GET(req) {
 
   const clientId = searchParams.get("clientId") || String(me._id);
 
-  if (String(clientId) !== String(me._id) && !requireRole(me, ["superadmin"])) {
+  if (String(clientId) !== String(me._id) && !requireRole(me, ["superadmin","admin"])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

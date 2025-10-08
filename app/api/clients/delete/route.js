@@ -6,7 +6,7 @@ import "../../../../lib/db";
 
 export async function DELETE(req) {
   const user = await getUserFromRequest(req);
-  if (!user || user.role !== "superadmin") {
+  if (!user || user.role !== "superadmin" && user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
