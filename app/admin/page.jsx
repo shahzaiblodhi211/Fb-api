@@ -175,8 +175,8 @@ export default function AdminDashboard() {
     { label: "Add Client", icon: UserPlus },
   ];
   if (userRole === "superadmin") {
-    tabs.push({ label: "Members", icon: Users });
-    tabs.push({ label: "Add Member", icon: UserPlus });
+    tabs.push({ label: "Admins", icon: Users });
+    tabs.push({ label: "Add Admin", icon: UserPlus });
   }
 
   // ===== Fetch clients =====
@@ -226,7 +226,7 @@ export default function AdminDashboard() {
     }
   };
   const handleDeleteAdmin = async (id) => {
-    if (!confirm("Are you sure you want to delete this member?")) return;
+    if (!confirm("Are you sure you want to delete this Admin?")) return;
     try {
       const res = await fetch(`/api/admins/create`, {
         method: "DELETE",
@@ -794,16 +794,16 @@ export default function AdminDashboard() {
             )}
 
           </>
-          : activeTab === 'Members' ?
+          : activeTab === 'Admins' ?
             <>
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">All Members</h2>
+                <h2 className="text-2xl font-bold">All Admins</h2>
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-blue-600 cursor-pointer to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
-                  onClick={() => setActiveTab('Add Member')}
+                  onClick={() => setActiveTab('Add Admin')}
                 >
-                  <UserPlus className="w-4 h-4" />  Add Member
+                  <UserPlus className="w-4 h-4" />  Add Admin
                 </Button>
               </div>
 
@@ -1010,7 +1010,7 @@ export default function AdminDashboard() {
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
                   <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 w-96 p-6 rounded-2xl shadow-2xl border border-white/30">
                     <h3 className="text-xl font-bold mb-5 text-gray-800 text-center">
-                      {editAdmin ? "Edit Member" : "Add Member"}
+                      {editAdmin ? "Edit Admin" : "Add Admin"}
                     </h3>
 
                     <form
@@ -1216,10 +1216,10 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </>
-              : activeTab === 'Add Member' ? (
+              : activeTab === 'Add Admin' ? (
                 <div className="mt-30 flex items-center justify-center">
                   <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-                    <h1 className="text-2xl font-bold mb-6 text-gray-800">Add New Member</h1>
+                    <h1 className="text-2xl font-bold mb-6 text-gray-800">Add New Admin</h1>
                     <form
                       onSubmit={async (e) => {
                         e.preventDefault();
@@ -1262,7 +1262,7 @@ export default function AdminDashboard() {
                         type="submit"
                         className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white w-full"
                       >
-                        Add Member
+                        Add Admin
                       </Button>
                     </form>
                   </div>
