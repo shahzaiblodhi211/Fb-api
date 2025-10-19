@@ -172,8 +172,10 @@ export default function AdminDashboard() {
   const tabs = [
     { label: "Dashboard", icon: LayoutDashboard },
     { label: "Clients", icon: Users },
+    { label: "Binance Dashboard", icon: LayoutDashboard },
     { label: "Add Client", icon: UserPlus },
   ];
+  
   if (userRole === "superadmin") {
     tabs.push({ label: "Admins", icon: Users });
     tabs.push({ label: "Add Admin", icon: UserPlus });
@@ -316,16 +318,24 @@ export default function AdminDashboard() {
                 key={idx}
                 variant={activeTab === item.label ? "default" : "ghost"}
                 className={`w-full justify-start gap-3 font-semibold cursor-pointer transition ${activeTab === item.label
-                  ? "bg-white/20 hover:bg-white/30 text-white hover:text-white"
-                  : "hover:bg-white/10 text-white hover:text-white"
+                    ? "bg-white/20 hover:bg-white/30 text-white hover:text-white"
+                    : "hover:bg-white/10 text-white hover:text-white"
                   }`}
-                onClick={() => setActiveTab(item.label)}
+                onClick={() => {
+                  if (item.label === "Binance Dashboard") {
+                    // Open external link
+                    window.location.href = "https://binance.advertiserassets.com/"
+                  } else {
+                    setActiveTab(item.label)
+                  }
+                }}
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
               </Button>
             ))}
           </nav>
+
         </div>
         <Button onClick={handleLogout} className="w-full cursor-pointer justify-start gap-2 bg-white/20 hover:bg-white/30 text-white transition">
           <LogOut className="w-4 h-4" /> Logout
