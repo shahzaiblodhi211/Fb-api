@@ -324,7 +324,7 @@ export default function AdminDashboard() {
                 onClick={() => {
                   if (item.label === "Binance Dashboard") {
                     // Open external link
-                    window.location.href = "https://binance.advertiserassets.com/"
+                    window.open("https://binance.advertiserassets.com/", "_blank");
                   } else {
                     setActiveTab(item.label)
                   }
