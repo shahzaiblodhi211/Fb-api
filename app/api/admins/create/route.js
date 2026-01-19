@@ -50,7 +50,14 @@ export async function GET(req) {
     .sort({ createdAt: -1 })
     .lean();
 
-  return NextResponse.json({ admins });
+  const adminsWithId = admins.map(admin => ({
+    id: admin._id.toString(),
+    name: admin.name,
+    email: admin.email,
+    status: "active", // assuming all are active
+  }));
+
+  return NextResponse.json({ admins: adminsWithId });
 }
 
 /**

@@ -9,7 +9,6 @@ const FbConnectionSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     facebookUserId: { type: String, required: true },
     accessToken: { type: String, required: true },

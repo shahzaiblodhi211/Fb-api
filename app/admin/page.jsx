@@ -879,7 +879,7 @@ export default function AdminDashboard() {
                               size="sm"
                               variant="outline"
                               className="border-red-300 text-red-600 cursor-pointer hover:text-white hover:bg-gradient-to-r hover:from-red-400 hover:to-red-600 transition-colors"
-                              onClick={() => handleDeleteAdmin(c._id)}
+                              onClick={() => handleDeleteAdmin(c.id)}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
